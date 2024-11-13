@@ -1,17 +1,16 @@
 import pdfplumber
 import pandas as pd
-from boxsdk import Client, OAuth2
 import calendar
 import argparse
 import os
-import sys
+import openpyxl
 
 
 data = {
-    'Price': [],
+    'Amount': [],
     'Address': [],
     'Meter': [],
-    'Consumption': [],
+    'Usage': [],
     'Month': []
 }
 
@@ -32,7 +31,7 @@ def parse_pdf(list_file_name):
                     # print(list_line)
                     if 'Total' in list_line and 'Current' in list_line and 'Activity' in list_line:
                         price = list_line[-1]
-                        data['Price'].append(price)
+                        data['Amount'].append(price)
                         # print(f'Price: {price} \n')
 
                     if 'Status:' in list_line:
@@ -50,60 +49,59 @@ def parse_pdf(list_file_name):
                             # print(f'Meter: {meter}')
                         else: 
                             data['Meter'].append('NA')
-                            data['Consumption'].append('NA')
+                            data['Usage'].append('NA')
                             # print('No Meter associated')
 
                     if 'Current' in list_line and 'Month' in list_line and 'Previous' not in list_line:
                         consumption = list_line[3]
-                        data['Consumption'].append(int(consumption))
+                        data['Usage'].append(int(consumption))
                         # print(f'Consumption: {consumption} kW')
 
                     if 'Billing' in list_line and 'Date:' in list_line:
-                        month = calendar.month_name[int(list_line[-1][:2])]
+                        month = calendar.month_abbr[int(list_line[-1][:2])-1]
             
-            tot = len(data['Price'])
+            tot = len(data['Amount'])
             for i in range(tot):
-                data['Month'].append(month)
+                data['Month'].append(month + ".") 
 
         return data
 
-            
+def update_excel(workbook, new_values):
+    specific_month = new_values["Month"][1]
+    sheet = workbook["Electricity"]
+
+    for count, cell in enumerate(sheet[4]):
+        if cell.value is not None:
+            value = cell.value.split(" ")[0]
+            if value == specific_month:
+                index_amount = count - 1
+                index_usage = count 
+    
+    for i, j in new_values.iterrows():
+        for row in sheet.iter_rows(min_row=4):
+
+            if row[4].value == j.iloc[2]:
+                row[index_amount].value = j.iloc[0]
+                row[index_usage].value = j.iloc[3]
+
+    workbook.save('2024 Utility Billing.xlsx')
+
+        
+
 
 if __name__ == "__main__":
     #parse arguments
     parser = argparse.ArgumentParser("Parse info in pdf files")
     parser.add_argument("-f", help="folder name") 
+    parser.add_argument("-e", help='existing excel file')
     args = parser.parse_args()
 
     files = os.listdir(args.f)
     dic_data = parse_pdf(files)
-    df = pd.DataFrame(data)
-    df.to_excel('ElectricityInfo.xlsx', index = False)
 
+    new_values = pd.DataFrame(dic_data)
+    workbook = openpyxl.load_workbook(args.e)
+    update_excel(workbook, new_values)
     
 
 
-
-
-# client_id = 'bswd6a0faank6k2jvg5jxfdpzovaikse'
-# client_secret = '00WAQ25TWag9GWwZgJu0QhSjhXQanUi8'
-# access_token = 'Ta7NVGDDYS8ScxRaorMrrDvw38KcHm5v'  
-
-
-
-# # Define a callback function to save the new tokens
-# def store_tokens_callback(new_access_token, new_refresh_token):
-#     # Save the tokens securely (e.g., in environment variables, a secure file, or a database)
-#     global access_token, refresh_token
-#     access_token = new_access_token
-#     refresh_token = new_refresh_token
-
-# Initialize OAuth2 with the client credentials and token callback
-# auth = OAuth2(client_id, client_secret, access_token)
-# client = Client(auth)
-
-# file_path = 'ElectricityInfo.xlsx'
-# folder_id = '0'
-
-# with open('ElectricityInfo.csv', 'rb') as file_content: 
-    # client.folder(folder_id).upload_stream(file_content,file_path)
