@@ -1,7 +1,13 @@
 # Scan-Bill-Info
-Script getting bill info
+
+This script processes electricity bills and update the utility spreadsheet.
 
 ## How it work
+
+-f : folder with all the bills
+
+-e : excel sheet to update
+
 ```
-$ python3 pdftest.py -f foldername_withbils
+$ python3 pdftest.py -f bills -e "2024 Utility Billing.xlsx"
 ```
