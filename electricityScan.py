@@ -11,7 +11,7 @@ data = {
     'Address': [],
     'Meter': [],
     'Usage': [],
-    'Month': []
+    # 'Month': []
 }
 
 def parse_pdf(list_file_name, root):
@@ -31,7 +31,7 @@ def parse_pdf(list_file_name, root):
                     # print(list_line)
                     if 'Total' in list_line and 'Current' in list_line and 'Activity' in list_line:
                         price = list_line[-1]
-                        data['Amount'].append(price)
+                        data['Amount'].append(price[1:])
                         # print(f'Price: {price} \n')
 
                     if 'Status:' in list_line:
@@ -54,25 +54,29 @@ def parse_pdf(list_file_name, root):
 
                     if 'Current' in list_line and 'Month' in list_line and 'Previous' not in list_line:
                         consumption = list_line[3]
-                        data['Usage'].append(int(consumption))
+                        if consumption==None:
+                            data['Usage'].append('NA')
+                            
+                        else:
+                            data['Usage'].append(int(consumption))
                         # print(f'Consumption: {consumption} kW')
 
-                    if 'Billing' in list_line and 'Date:' in list_line:
-                        month = calendar.month_abbr[int(list_line[-1][:2])-1]
+                    # if 'Billing' in list_line and 'Date:' in list_line:
+                    #     month = calendar.month_abbr[int(list_line[-1][:2])-1]
             
-            tot = len(data['Amount'])
-            for i in range(tot):
-                data['Month'].append(month + ".") 
-
-        return data
+            # tot = len(data['Amount'])
+            # for i in range(tot):
+            #     data['Month'].append(month + ".") 
+    return data
 
 def update_excel(workbook, new_values):
-    specific_month = new_values["Month"][1]
+    #specific_month = new_values["Month"][1]
+    specific_month = "Mar."
     sheet = workbook["Electricity"]
 
     for count, cell in enumerate(sheet[4]):
         if cell.value is not None:
-            value = cell.value.split(" ")[0]
+            value = str(cell.value.split(" ")[0])
             if value == specific_month:
                 index_amount = count - 1
                 index_usage = count 
@@ -102,6 +106,5 @@ if __name__ == "__main__":
     new_values = pd.DataFrame(dic_data)
     workbook = openpyxl.load_workbook(args.e)
     update_excel(workbook, new_values)
+    print("Successfuly updated the values")
     
-
-
