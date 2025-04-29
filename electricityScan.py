@@ -69,9 +69,9 @@ def parse_pdf(list_file_name, root):
             #     data['Month'].append(month + ".") 
     return data
 
-def update_excel(workbook, new_values):
+def update_excel(workbook, new_values, month):
     #specific_month = new_values["Month"][1]
-    specific_month = "Mar."
+    specific_month = month
     sheet = workbook["Electricity"]
 
     for count, cell in enumerate(sheet[4]):
@@ -98,6 +98,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser("Parse info in pdf files")
     parser.add_argument("-f", help="folder name") 
     parser.add_argument("-e", help='existing excel file')
+    parser.add_argument("-m", help="month") 
     args = parser.parse_args()
 
     files = os.listdir(args.f)
@@ -105,6 +106,6 @@ if __name__ == "__main__":
 
     new_values = pd.DataFrame(dic_data)
     workbook = openpyxl.load_workbook(args.e)
-    update_excel(workbook, new_values)
+    update_excel(workbook, new_values, args.m)
     print("Successfuly updated the values")
     
