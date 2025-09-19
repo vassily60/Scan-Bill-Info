@@ -1,6 +1,6 @@
 # Electricity Bill Spreadsheet Update
 
-This script processes electricity bills, collect data from them and update the utility spreadsheet.
+This repository contains a pipeline to processes electricity bills, collect data from them and update the database spreadsheet.
 
 Below is a detailed explanation of how the overall system work.
 
